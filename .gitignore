@@ -1,0 +1,24 @@
+# Entorno y caché de Python
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+dist/
+
+# Tests
+.pytest_cache/
+
+# Secretos y configuración local
+.env
+*.pem
+*.key
+
+# Datos generados en ejecución
+data/audit.jsonl
+audit.jsonl
+
+# Editores / SO
+.idea/
+.vscode/
+.DS_Store
