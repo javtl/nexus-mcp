@@ -87,7 +87,7 @@ Submission              ⚪
 Requires Python 3.10 or later.
 
 ```bash
-git clone https://github.com/<your-username>/nexus-mcp.git
+git clone https://github.com/javtl/nexus-mcp.git
 cd nexus-mcp
 
 python3 -m venv .venv
