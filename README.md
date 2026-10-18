@@ -38,49 +38,52 @@ Nexus-MCP demonstrates this control flow at the MCP layer: **an agent can reques
 
 Three simulated tools demonstrate the different outcomes:
 
-| Tool           | Action      | Risk   | Decision |
-| -------------- | ----------- | ------ | -------- |
-| `get_customer` | READ        | LOW    | ✅ ALLOW |
-| `create_order` | WRITE       | MEDIUM | ✅ ALLOW |
-| `cancel_order` | DESTRUCTIVE | HIGH   | ❌ DENY  |
+| Tool | Action | Risk | Decision |
+|---|---|---|---|
+| `get_customer` | READ | LOW | ✅ ALLOW |
+| `create_order` | WRITE | MEDIUM | ✅ ALLOW |
+| `cancel_order` | DESTRUCTIVE | HIGH | ❌ DENY |
 
 Example: a user asks Alexa+ to cancel order `1042`. Alexa+ requests `cancel_order(order_id=1042)`, Nexus authenticates the request, the policy returns `DENY`, the tool is never invoked, an audit event is written with `execution_status = NOT_EXECUTED`, and the denial is returned to Alexa+.
 
 ## Tech stack
 
-| Area                 | Choice                                                                      |
-| -------------------- | --------------------------------------------------------------------------- |
-| Language             | Python                                                                      |
-| Protocol             | MCP (minimum spec version 2025-11-25)                                       |
-| Transport            | Streamable HTTP                                                             |
-| MCP implementation   | Official MCP Python SDK                                                     |
-| Authentication       | OAuth model required by Alexa+ (bearer tokens, protected resource metadata) |
-| Authorization policy | Python mapping, deny by default                                             |
-| Audit                | Append-only JSONL                                                           |
-| Testing              | pytest                                                                      |
-| Architecture         | Modular monolith                                                            |
+| Area | Choice |
+|---|---|
+| Language | Python |
+| Protocol | MCP (minimum spec version 2025-11-25) |
+| Transport | Streamable HTTP |
+| MCP implementation | Official MCP Python SDK (2.x) |
+| Authentication | OAuth model required by Alexa+ (bearer tokens, protected resource metadata) |
+| Authorization policy | Python mapping, deny by default |
+| Audit | Append-only JSONL |
+| Testing | pytest |
+| Architecture | Modular monolith |
 
 The reasoning behind each choice is recorded in [`docs/DECISIONS.md`](docs/DECISIONS.md).
 
 ## Project status
 
-🟡 **Sprint 1 starting. NX-00 (Ground Zero) is complete.**
+🟡 **Sprint 1 in progress. NX-00 to NX-03 are complete.**
 
 ```text
 Project definition      ✅
 Architecture            ✅ (conceptual)
 Technical decisions     🟡 (some provisional)
 Repository / env        ✅
-MCP server spike        ✅
-Authorization engine    ⚪
-Tools                   ⚪
-Audit                   ⚪
+MCP server skeleton     ✅ (tools listed, not yet wired to the gateway)
+Simulated tools         ✅
+Authorization engine    ✅
+Gateway + audit         ⚪ (next)
+Integration tests       ⚪
 Authentication          ⚪
 Remote deployment       ⚪
 Alexa+ integration      ⚪
 Demo                    ⚪
 Submission              ⚪
 ```
+
+> The server currently exposes the three tools with placeholder bodies. They are intentionally **not** connected to the real tool functions until the gateway enforces authorization (next feature), so no tool can run without a policy decision.
 
 ## Getting started
 
@@ -96,42 +99,47 @@ source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -e ".[dev]"
 cp .env.example .env               # never commit .env
 
-pytest                             # smoke test should pass
-python -m nexus_mcp.server         # minimal MCP server over Streamable HTTP
+pytest                             # unit tests should pass
+python -m nexus_mcp.server         # MCP server over Streamable HTTP
 ```
 
 You can inspect the running server with the MCP Inspector (see its documentation for connecting over Streamable HTTP).
 
-> The current `server.py` is a spike with a single `ping` tool. The real server, tools, authorization, audit and authentication arrive in the next features.
+Environment variables are not loaded from `.env` automatically. Export them in your shell, for example:
+
+```bash
+set -a; source .env; set +a
+```
 
 ## Repository layout
 
 ```text
 src/nexus_mcp/
 ├── server.py          MCP entry point (HTTP/MCP boundary)
-├── gateway.py         orchestrates authorization → tool → audit
-├── auth/              authentication: token validation, resource metadata
-├── authorization/     policy and ALLOW/DENY engine
-├── tools/             simulated business tools
-└── audit/             audit events and JSONL writer
+├── config.py          settings from environment variables
+├── authorization/     policy and ALLOW/DENY engine            ✅
+├── tools/             simulated business tools                ✅
+├── gateway.py         authorization → tool → audit            (planned)
+├── audit/             audit events and JSONL writer           (planned)
+└── auth/              token validation, resource metadata     (planned)
 tests/                 unit and integration tests
 docs/                  project documentation
 ```
 
-Some of these modules are planned and not created yet; see [`docs/ROADMAP.md`](docs/ROADMAP.md).
+See [`docs/ROADMAP.md`](docs/ROADMAP.md) for the build order.
 
 ## Documentation
 
-| Document                                                   | Purpose                                |
-| ---------------------------------------------------------- | -------------------------------------- |
-| [`docs/PROJECT.md`](docs/PROJECT.md)                       | What we are building and why           |
-| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)             | How the system is structured           |
-| [`docs/DECISIONS.md`](docs/DECISIONS.md)                   | Technical decisions and their reasons  |
-| [`docs/ROADMAP.md`](docs/ROADMAP.md)                       | Build order and milestones             |
-| [`docs/TICKETS.md`](docs/TICKETS.md)                       | Task-level work and Definition of Done |
-| [`docs/LEARNING_LOG.md`](docs/LEARNING_LOG.md)             | What is being learned along the way    |
-| [`docs/RISKS-AND-FRICTION.md`](docs/RISKS-AND-FRICTION.md) | Risks and tooling friction             |
-| [`AI_INSTRUCTIONS.md`](AI_INSTRUCTIONS.md)                 | How AI assistants work on this project |
+| Document | Purpose |
+|---|---|
+| [`docs/PROJECT.md`](docs/PROJECT.md) | What we are building and why |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | How the system is structured |
+| [`docs/DECISIONS.md`](docs/DECISIONS.md) | Technical decisions and their reasons |
+| [`docs/ROADMAP.md`](docs/ROADMAP.md) | Build order and milestones |
+| [`docs/TICKETS.md`](docs/TICKETS.md) | Task-level work and Definition of Done |
+| [`docs/LEARNING_LOG.md`](docs/LEARNING_LOG.md) | What is being learned along the way |
+| [`docs/RISKS-AND-FRICTION.md`](docs/RISKS-AND-FRICTION.md) | Risks and tooling friction |
+| [`AI_INSTRUCTIONS.md`](AI_INSTRUCTIONS.md) | How AI assistants work on this project |
 
 ## Development workflow
 
@@ -151,7 +159,8 @@ Each feature gets its own branch, tests and review before merging into `develop`
 
 - Secrets live in `.env`, which is git-ignored. Only `.env.example` is committed.
 - Access tokens, client secrets and private keys must never appear in logs or in audit records.
-- Authentication and authorization are separate responsibilities: the first answers _who_, the second answers _is it allowed_.
+- Authentication and authorization are separate responsibilities: the first answers *who*, the second answers *is it allowed*.
+- Authorization denies by default: a tool missing from the policy is blocked, not allowed.
 
 ## Not in scope
 
