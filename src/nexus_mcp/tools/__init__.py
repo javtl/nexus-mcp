@@ -1,14 +1,7 @@
-"""Simulated DESTRUCTIVE tool.
+"""Simulated business tools. They know nothing about MCP, HTTP or authorization."""
 
-It exists so the system is complete and testable. In the MVP it must NEVER be
-invoked through Nexus: the policy returns DENY and the gateway does not call it.
-"""
+from .cancel_order import cancel_order
+from .create_order import create_order
+from .get_customer import get_customer
 
-from __future__ import annotations
-
-from .validation import require_positive_int
-
-
-def cancel_order(order_id: int) -> dict:
-    require_positive_int(order_id, "order_id")
-    return {"order_id": order_id, "status": "CANCELLED"}
+__all__ = ["cancel_order", "create_order", "get_customer"]
