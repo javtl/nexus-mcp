@@ -65,7 +65,7 @@ The reasoning behind each choice is recorded in [`docs/DECISIONS.md`](docs/DECIS
 
 ## Project status
 
-🟡 **Sprint 2 in progress. NX-00 to NX-07 are complete.**
+🟡 **Sprint 2 starting. NX-00 to NX-06 are complete.**
 
 ```text
 Project definition      ✅
@@ -77,8 +77,8 @@ Authorization engine    ✅
 Gateway + audit         ✅
 Integration tests       ✅
 Authentication          ✅
-Remote deployment       ✅
-Alexa+ integration      ⚪ (next)
+Remote deployment       ⚪ (next)
+Alexa+ integration      ⚪
 End-to-end validation   ⚪
 Demo                    ⚪
 Submission              ⚪
@@ -143,22 +143,7 @@ The server **refuses to start** if authentication is not configured. There is in
 python -m nexus_mcp.server
 ```
 
-### Try it with the smoke client
-
-`scripts/mcp_smoke.py` obtains a token with the OAuth client credentials flow, lists the tools and runs the three scenarios:
-
-```bash
-# also needs AUTH_TOKEN_URL, AUTH_CLIENT_ID, AUTH_CLIENT_SECRET, AUTH_SCOPE in your environment
-NEXUS_MCP_URL=https://<your-host>/mcp python scripts/mcp_smoke.py
-```
-
-Expected: `get_customer` and `create_order` succeed, `cancel_order` is denied, and the audit log gets one line per call.
-
-```bash
-bash scripts/check_remote.sh https://<your-host>
-```
-
-checks that unauthenticated requests get `401` and that the discovery metadata is reachable.
+Every request to the MCP endpoint needs a valid bearer token from your authorization server. A request without one gets `401`.
 
 ### Reading the audit log
 
@@ -182,7 +167,6 @@ src/nexus_mcp/
 tests/
 ├── unit/              per-module tests
 └── integration/       end-to-end gateway flow and architecture boundaries
-scripts/               smoke client, remote checks
 docs/                  project documentation
 ```
 
@@ -193,7 +177,6 @@ docs/                  project documentation
 | [`docs/PROJECT.md`](docs/PROJECT.md) | What we are building and why |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | How the system is structured |
 | [`docs/DECISIONS.md`](docs/DECISIONS.md) | Technical decisions and their reasons |
-| [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) | Hosting, variables and redeploy steps |
 | [`docs/ROADMAP.md`](docs/ROADMAP.md) | Build order and milestones |
 | [`docs/TICKETS.md`](docs/TICKETS.md) | Task-level work and Definition of Done |
 | [`docs/LEARNING_LOG.md`](docs/LEARNING_LOG.md) | What is being learned along the way |
@@ -220,7 +203,7 @@ Each feature gets its own branch, tests and review before merging into `develop`
 - Tokens, client secrets and private keys never appear in logs or audit records. Audit arguments are sanitized by key name as a safety net.
 - Authentication answers *who*; authorization answers *is it allowed*. They are separate modules.
 - Authorization denies by default: a tool missing from the policy is blocked, not allowed.
-- Token validation pins the accepted algorithms and requires `iss` and `exp`.
+- Token validation pins the accepted algorithms and requires `iss` and `exp`. Error messages never include the token.
 - If the audit writer fails, a denied call is still never executed.
 
 ## Not in scope
