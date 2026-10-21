@@ -65,7 +65,7 @@ The reasoning behind each choice is recorded in [`docs/DECISIONS.md`](docs/DECIS
 
 ## Project status
 
-🟡 **Sprint 2 starting. NX-00 to NX-06 are complete.**
+🟡 **Sprint 2 in progress.** The core is complete; the Alexa+ connection is being built.
 
 ```text
 Project definition      ✅
@@ -75,10 +75,9 @@ MCP server              ✅
 Simulated tools         ✅
 Authorization engine    ✅
 Gateway + audit         ✅
-Integration tests       ✅
-Authentication          ✅
-Remote deployment       ⚪ (next)
-Alexa+ integration      ⚪
+Authentication          ✅  (service-level scopes supported)
+Remote exposure         🟡  (development tunnel; stable hosting pending)
+Alexa+ integration      🟡  (requirements verified; add-on not deployed yet)
 End-to-end validation   ⚪
 Demo                    ⚪
 Submission              ⚪
@@ -99,6 +98,18 @@ Submission              ⚪
 ```
 
 Authentication (`auth/`) never knows about the policy, and the policy (`authorization/`) never imports the tools. Architecture tests in `tests/integration/` enforce these boundaries.
+
+## Alexa+ authentication model
+
+From the official Alexa+ MCP documentation:
+
+- **Two tiers.** Tier 1 is a service-level token (`client_credentials`, scope `mcp:service`). Tier 2 is a user-level token (authorization code + PKCE) used when account linking is enabled.
+- Unauthenticated requests must receive `401` **without** a `WWW-Authenticate` header.
+- The server publishes Protected Resource Metadata (RFC 9728). The authorization server publishes its metadata at `/.well-known/oauth-authorization-server` and supports PKCE `S256`.
+- Alexa+ sends a `resource` parameter in its token requests.
+- Responses must complete in under 500 ms, and Alexa+ caches authentication metadata at deploy time.
+
+Nexus supports both scope rules in its token validator: `AUTH_REQUIRED_SCOPES` (every scope must be present) and `AUTH_ACCEPTED_SCOPES` (at least one must be present, e.g. `mcp:service mcp:tools`).
 
 ## Getting started
 
@@ -129,10 +140,11 @@ set -a; source .env; set +a
 |---|---|
 | `NEXUS_HOST` / `NEXUS_PORT` (or `PORT`) | Bind address and port |
 | `NEXUS_PUBLIC_URL` | Public HTTPS URL of this server |
-| `AUTH_ISSUER_URL` | OAuth authorization server (token issuer) |
+| `AUTH_ISSUER_URL` | OAuth authorization server (token issuer, compared literally) |
 | `AUTH_JWKS_URL` | JWKS endpoint used to verify token signatures |
 | `AUTH_AUDIENCE` | Optional expected audience |
-| `AUTH_REQUIRED_SCOPES` | Scopes a token must carry |
+| `AUTH_REQUIRED_SCOPES` | Scopes a token must all carry |
+| `AUTH_ACCEPTED_SCOPES` | Scopes of which a token must carry at least one |
 | `AUDIT_FILE_PATH` | Audit log location (default `data/audit.jsonl`) |
 
 The server **refuses to start** if authentication is not configured. There is intentionally no switch to disable it.
@@ -144,6 +156,16 @@ python -m nexus_mcp.server
 ```
 
 Every request to the MCP endpoint needs a valid bearer token from your authorization server. A request without one gets `401`.
+
+### Expose it for testing
+
+Alexa+ cannot reach `127.0.0.1`, so a public HTTPS URL is needed. For development, a Cloudflare quick tunnel works:
+
+```bash
+cloudflared tunnel --url http://localhost:8000
+```
+
+Set `NEXUS_PUBLIC_URL` to the URL it prints and restart the server. **A quick tunnel's URL changes every time `cloudflared` restarts**, so it is suitable for development and demos, not as a stable production address.
 
 ### Reading the audit log
 
