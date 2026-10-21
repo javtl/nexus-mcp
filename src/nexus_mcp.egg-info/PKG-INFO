@@ -5,5 +5,6 @@ Summary: Authorization and audit gateway for AI agent tool calls (MCP).
 Requires-Python: >=3.10
 Description-Content-Type: text/markdown
 Requires-Dist: mcp==2.3.0
+Requires-Dist: PyJWT[crypto]>=2.10.1
 Provides-Extra: dev
 Requires-Dist: pytest>=8; extra == "dev"

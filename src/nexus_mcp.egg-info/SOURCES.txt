@@ -1,4 +1,5 @@
 pyproject.toml
+src/nexus_mcp/__init__.py
 src/nexus_mcp/config.py
 src/nexus_mcp/gateway.py
 src/nexus_mcp/server.py
