@@ -1,24 +1,154 @@
-# Entorno y caché de Python
-.venv/
-__pycache__/
-*.pyc
-*.egg-info/
-build/
-dist/
+# =============================================================================
+# Nexus-MCP — .gitignore
+# =============================================================================
 
-# Tests
-.pytest_cache/
-
-# Secretos y configuración local
+# -----------------------------------------------------------------------------
+# 1. Secretos y credenciales (CRÍTICO)
+# -----------------------------------------------------------------------------
 .env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
 *.pem
 *.key
+*.p12
+*.pfx
+*.jks
+*.keystore
 
-# Datos generados en ejecución
-data/audit.jsonl
-audit.jsonl
+secrets/
+.secrets/
+*.secret
+*.secrets
+secrets.*
+credentials.*
+client_secret*.json
+credentials*.json
 
-# Editores / SO
-.idea/
+# Tokens y estado de autenticación
+tokens.json
+*.token
+*.tokens
+.oauth/
+oauth_state*
+.cloudflared/
+
+# Credenciales de túneles (cloudflared guarda <UUID>.json en ~/.cloudflared)
+*.tunnel.json
+
+# -----------------------------------------------------------------------------
+# 2. Python — bytecode y empaquetado
+# -----------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+build/
+dist/
+*.egg-info/
+*.egg
+.eggs/
+MANIFEST
+pip-wheel-metadata/
+share/python-wheels/
+.installed.cfg
+pip-log.txt
+pip-delete-this-directory.txt
+
+# -----------------------------------------------------------------------------
+# 3. Entornos virtuales
+# -----------------------------------------------------------------------------
+.venv/
+venv/
+ENV/
+env/
+env.bak/
+venv.bak/
+.conda/
+
+# -----------------------------------------------------------------------------
+# 4. Testing, cobertura y herramientas de calidad
+# -----------------------------------------------------------------------------
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+*.cover
+.tox/
+.nox/
+.hypothesis/
+
+.ruff_cache/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+.pyright/
+.cache/
+
+# -----------------------------------------------------------------------------
+# 5. Base de datos y auditoría (la persistencia aún no está decidida)
+# -----------------------------------------------------------------------------
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-shm
+*.db-wal
+*-journal
+
+# Registros de auditoría y logs de ejecución
+audit/
+audit_logs/
+*.audit
+*.audit.jsonl
+logs/
+*.log
+*.log.*
+
+# -----------------------------------------------------------------------------
+# 6. Artefactos locales, temporales y de runtime
+# -----------------------------------------------------------------------------
+tmp/
+temp/
+local/
+.local/
+*.tmp
+*.temp
+*.bak
+*.orig
+*.swp
+*.swo
+*~
+.nexus/
+
+# Notebooks
+.ipynb_checkpoints/
+
+# -----------------------------------------------------------------------------
+# 7. IDEs y editores
+# -----------------------------------------------------------------------------
 .vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.history/
+
+# -----------------------------------------------------------------------------
+# 8. Sistema operativo
+# -----------------------------------------------------------------------------
 .DS_Store
+.AppleDouble
+.LSOverride
+._*
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+desktop.ini
+$RECYCLE.BIN/

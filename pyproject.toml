@@ -10,8 +10,8 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     # Fija aquí la versión EXACTA que anotaste con `pip show mcp` (ADR-007).
-    # Ejemplo de forma: "mcp==X.Y.Z"
-    "mcp==___",
+    "mcp==2.3.0",
+    "PyJWT[crypto]>=2.10.1",
 ]
 
 [project.optional-dependencies]
