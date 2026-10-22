@@ -1,24 +1,36 @@
 """MCP entry point. Thin adapters: translate MCP calls into gateway calls.
 Decisions (authorization) and execution live elsewhere."""
 
-from mcp.server.mcpserver import MCPServer  # como en tu server.py actual
+from mcp.server.auth.settings import AuthSettings
+from mcp.server.mcpserver import MCPServer
+from pydantic import AnyHttpUrl
 
-from nexus_mcp.config import load_settings
+from nexus_mcp.auth import build_token_verifier
+from nexus_mcp.config import load_settings, require_auth_settings
 from nexus_mcp.gateway import GatewayResult, Outcome, build_default_gateway
 
+# Carga de configuración y aplicación estricta de fail-closed
 _settings = load_settings()
+require_auth_settings(_settings)
+
 _gateway = build_default_gateway(_settings)
 
-mcp = MCPServer("nexus-mcp")
+# Inicialización del servidor MCP con el verificador de tokens de autenticación
+mcp = MCPServer(
+    "nexus-mcp",
+    token_verifier=build_token_verifier(_settings),
+    auth=AuthSettings(
+        issuer_url=AnyHttpUrl(_settings.auth_issuer_url),
+        resource_server_url=AnyHttpUrl(_settings.public_url),
+        required_scopes=list(_settings.auth_required_scopes) or None,
+    ),
+)
 
 
 def _to_mcp(result: GatewayResult) -> dict:
     if result.outcome is Outcome.EXECUTED:
         return result.result  # type: ignore[return-value]
-    # DENIED or FAILED. [?] D3-2: how should the SDK 2.3.0 report a tool error?
-    # Option 1 (preferred if the Inspector shows isError=true with this message):
     raise RuntimeError(result.message)
-    # Option 2 (fallback): return {"status": "denied", "reason": result.message, "request_id": result.request_id}
 
 
 @mcp.tool()
@@ -40,4 +52,4 @@ def cancel_order(order_id: int) -> dict:
 
 
 if __name__ == "__main__":
-    mcp.run(transport="streamable-http")  # conserva tu llamada actual si ya funciona
+    mcp.run(transport="streamable-http")

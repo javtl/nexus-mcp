@@ -29,3 +29,10 @@ def test_only_the_gateway_imports_tools():
 
 def test_every_policy_tool_has_an_implementation():
     assert set(POLICY) == set(default_tools())
+
+def test_auth_package_does_not_know_authorization_or_tools():
+    forbidden = ("nexus_mcp.authorization", "nexus_mcp.tools", "nexus_mcp.gateway",
+                 "from ..authorization", "from ..tools", "from ..gateway")
+    for path in (SRC / "auth").glob("*.py"):
+        text = path.read_text(encoding="utf-8")
+        assert not any(item in text for item in forbidden), path.name
