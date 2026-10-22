@@ -1,7 +1,11 @@
+<<<<<<< HEAD
+"""Pure JWT access token validation (no MCP SDK, no network in tests)."""
+=======
 """Pure JWT access token validation (no MCP SDK, no network in tests).
 
 Answers ONE question: is this token valid for this server?
 It does NOT decide whether a tool may run (that is authorization)."""
+>>>>>>> origin/develop
 
 from __future__ import annotations
 
@@ -51,7 +55,12 @@ class JwtTokenValidator:
         issuer: str,
         key_resolver: KeyResolver,
         audience: str | None = None,
+<<<<<<< HEAD
+        required_scopes: tuple[str, ...] = (),   # ALL of these must be present
+        accepted_scopes: tuple[str, ...] = (),   # AT LEAST ONE of these must be present
+=======
         required_scopes: tuple[str, ...] = (),
+>>>>>>> origin/develop
         algorithms: tuple[str, ...] = ("RS256",),
         leeway_seconds: int = 0,
     ) -> None:
@@ -59,7 +68,12 @@ class JwtTokenValidator:
         self._key_resolver = key_resolver
         self._audience = audience
         self._required_scopes = required_scopes
+<<<<<<< HEAD
+        self._accepted_scopes = accepted_scopes
+        self._algorithms = list(algorithms)
+=======
         self._algorithms = list(algorithms)   # never include "none" or symmetric algs
+>>>>>>> origin/develop
         self._leeway = leeway_seconds
 
     def validate(self, token: str) -> VerifiedToken:
@@ -75,12 +89,20 @@ class JwtTokenValidator:
                 options={"require": ["exp", "iss"], "verify_aud": self._audience is not None},
             )
         except jwt.PyJWTError as exc:
+<<<<<<< HEAD
+=======
             # Only the exception class name: never the token or claims.
+>>>>>>> origin/develop
             raise TokenValidationError(type(exc).__name__) from None
 
         scopes = _extract_scopes(claims)
         if not set(self._required_scopes).issubset(scopes):
             raise TokenValidationError("InsufficientScope")
+<<<<<<< HEAD
+        if self._accepted_scopes and not set(self._accepted_scopes) & set(scopes):
+            raise TokenValidationError("InsufficientScope")
+=======
+>>>>>>> origin/develop
 
         client_id = claims.get("client_id") or claims.get("azp") or claims.get("sub")
         if not isinstance(client_id, str) or not client_id:
